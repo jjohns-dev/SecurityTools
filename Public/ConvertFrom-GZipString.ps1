@@ -29,18 +29,21 @@ function ConvertFrom-GZipString {
     }
     Process {
         foreach ($str in $String) {
-            $compressedBytes = [System.Convert]::FromBase64String($str)
-            $ms = New-Object System.IO.MemoryStream
-            $ms.write($compressedBytes, 0, $compressedBytes.Length)
-            $ms.Seek(0, 0) | Out-Null
-            $cs = New-Object System.IO.Compression.GZipStream($ms, [System.IO.Compression.CompressionMode]::Decompress)
-            $sr = New-Object System.IO.StreamReader($cs)
-            $sr.ReadToEnd()
+            $memStream = $null; $gzipStream = $null; $reader = $null
+            try {
+                $compressedBytes = [System.Convert]::FromBase64String($str)
+                $memStream = New-Object System.IO.MemoryStream
+                $memStream.Write($compressedBytes, 0, $compressedBytes.Length)
+                $memStream.Seek(0, 0) | Out-Null
+                $gzipStream = New-Object System.IO.Compression.GZipStream($memStream, [System.IO.Compression.CompressionMode]::Decompress)
+                $reader = New-Object System.IO.StreamReader($gzipStream)
+                $reader.ReadToEnd()
+            }
+            finally {
+                if ($reader) { $reader.Dispose() }
+                if ($gzipStream) { $gzipStream.Dispose() }
+                if ($memStream) { $memStream.Dispose() }
+            }
         }
-    }
-    End {
-        $ms.Dispose()
-        $cs.Dispose()
-        $sr.Dispose()
     }
 }
