@@ -132,7 +132,8 @@ function Save-KBFile {
                 else {
                     # Invoke-WebRequest is crazy slow for large downloads
                     Write-Progress -Activity ('Downloading {0}' -f $FilePath) -Id 1
-                    (New-Object Net.WebClient).DownloadFile($link, $file)
+                    $wc = New-Object Net.WebClient
+                    try { $wc.DownloadFile($link, $file) } finally { $wc.Dispose() }
                     Write-Progress -Activity ('Downloading {0}' -f $FilePath) -Id 1 -Completed
                 }
                 if (Test-Path -Path $file) {

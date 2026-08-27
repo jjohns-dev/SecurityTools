@@ -50,10 +50,15 @@ function Get-StringHash {
         $stringBuilder = New-Object System.Text.StringBuilder
 
         Write-Verbose -Message 'Computing hash...'
-        $ag.ComputeHash($inputBytes) | ForEach-Object -Process {
-            # APPENDING TO THE STRING BUILDER PRINTS TO THE CONSOLE
-            # THE VOID REMOVES THAT CONSOLE OUTPUT
-            [void] $stringBuilder.Append($_.ToString("x2"))
+        try {
+            $ag.ComputeHash($inputBytes) | ForEach-Object -Process {
+                # APPENDING TO THE STRING BUILDER PRINTS TO THE CONSOLE
+                # THE VOID REMOVES THAT CONSOLE OUTPUT
+                [void] $stringBuilder.Append($_.ToString("x2"))
+            }
+        }
+        finally {
+            $ag.Dispose()
         }
 
         $StringBuilder.ToString()
