@@ -72,4 +72,7 @@ function Find-LANHost {
 
         Write-Output -InputObject $Hosts
     }
+    End {
+        if ($UDP) { $UDP.Dispose() }
+    }
 }

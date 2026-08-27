@@ -60,4 +60,7 @@ function Invoke-NetScan {
             $count++
         }
     }
+    End {
+        $ping.Dispose()
+    }
 }
