@@ -13,40 +13,10 @@ on:
       - .gitignore
       - .github/**
 
-permissions:
-  id-token: write # this is required for requesting JWT
-  contents: write # this is required for actions/checkout
-
 jobs:
   release:
     if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - shell: pwsh # install dependencies
-        run: .\Build\build.ps1 -ResolveDependency -TaskList 'Init'
-
-      - shell: pwsh # stage module
-        run: .\Build\build.ps1 -TaskList 'CombineFunctionsAndStage'
-
-      - shell: pwsh # psscriptanalyzer
-        run: .\Build\build.ps1 -TaskList 'Analyze'
-
-      - shell: pwsh # pester
-        run: .\Build\build.ps1 -TaskList 'Test'
-
-      - shell: pwsh # compress module
-        run: .\Build\build.ps1 -TaskList 'CreateBuildArtifact'
-
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: Artifacts
-          path: "Artifacts"
-          if-no-files-found: error
-
-      - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          generate_release_notes: true
-          files: Artifacts/*.zip
+    uses: jjohns-dev/pwsh-module-ci/.github/workflows/release.yml@v1
+    permissions:
+      id-token: write
+      contents: write
