@@ -1,0 +1,19 @@
+name: pssa-sarif
+run-name: pssa-sarif
+
+on:
+  pull_request:
+    branches: ["*"]
+  push:
+    branches: [main]
+
+concurrency:
+  group: pssa-sarif-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    uses: jjohns-dev/pwsh-module-ci/.github/workflows/pssa-sarif.yml@v1
+    permissions:
+      contents: read
+      security-events: write
