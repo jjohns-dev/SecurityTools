@@ -1,3 +1,9 @@
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+    'PSAvoidUsingComputerNameHardcoded',
+    '',
+    Justification = 'Placeholder hostnames used to assert UNC path formatting; not real infrastructure names.')]
+param()
+
 BeforeDiscovery {
     if (-not (Get-Module -Name $env:BHProjectName)) {
         Import-Module -Name $env:BHPSModuleManifest -ErrorAction 'Stop' -Force

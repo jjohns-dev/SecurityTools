@@ -1,3 +1,9 @@
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+    'PSAvoidUsingConvertToSecureStringWithPlainText',
+    '',
+    Justification = 'Synthetic credential used only to build a PSCredential fixture in-memory for this test file; not a real secret.')]
+param()
+
 BeforeDiscovery {
     if (-not (Get-Module -Name $env:BHProjectName)) {
         Import-Module -Name $env:BHPSModuleManifest -ErrorAction 'Stop' -Force
