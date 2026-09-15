@@ -1,10 +1,10 @@
 # SecurityTools
 
-[![validate](https://github.com/johnsarie27/SecurityTools/actions/workflows/validate.yml/badge.svg?branch=main)](https://github.com/johnsarie27/SecurityTools/actions/workflows/validate.yml)
-[![release](https://github.com/johnsarie27/SecurityTools/actions/workflows/release.yml/badge.svg)](https://github.com/johnsarie27/SecurityTools/actions/workflows/release.yml)
+[![validate](https://github.com/jjohns-dev/SecurityTools/actions/workflows/validate.yml/badge.svg?branch=main)](https://github.com/jjohns-dev/SecurityTools/actions/workflows/validate.yml)
+[![release](https://github.com/jjohns-dev/SecurityTools/actions/workflows/release.yml/badge.svg)](https://github.com/jjohns-dev/SecurityTools/actions/workflows/release.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PowerShell](https://img.shields.io/badge/PowerShell-7.0%2B-blue?logo=powershell&logoColor=white)](https://github.com/PowerShell/PowerShell)
-[![GitHub release](https://img.shields.io/github/v/release/johnsarie27/SecurityTools)](https://github.com/johnsarie27/SecurityTools/releases/latest)
+[![GitHub release](https://img.shields.io/github/v/release/jjohns-dev/SecurityTools)](https://github.com/jjohns-dev/SecurityTools/releases/latest)
 
 ## Description
 
@@ -21,7 +21,7 @@ A PowerShell module for information security, digital forensics, and reporting. 
 Clone the repository and import the module directly:
 
 ```powershell
-git clone https://github.com/johnsarie27/SecurityTools.git
+git clone https://github.com/jjohns-dev/SecurityTools.git
 Import-Module ./SecurityTools/SecurityTools.psd1
 ```
 
@@ -54,7 +54,7 @@ Get-CVSSv3BaseScore -CVE $cve
 
 ## Latest Version Notes
 
-See the [Releases](https://github.com/johnsarie27/SecurityTools/releases) page
+See the [Releases](https://github.com/jjohns-dev/SecurityTools/releases) page
 for version notes. Release notes are auto-generated from merged pull requests
 and categorized via [.github/release.yml](.github/release.yml).
 
@@ -75,5 +75,5 @@ for use by a specific team of engineers, not for broad use.
 To start, please read the [contribution guide](CONTRIBUTING.md).
 
 - Read the current content and help fix any spelling mistakes or grammatical errors.
-- Choose an existing [issue](https://github.com/johnsarie27/SecurityTools/issues) and submit a pull request to fix it.
+- Choose an existing [issue](https://github.com/jjohns-dev/SecurityTools/issues) and submit a pull request to fix it.
 - Open a new issue to report an opportunity for improvement.

@@ -17,7 +17,7 @@ Please do **not** open a public GitHub issue for security vulnerabilities. Repor
 
 **Assessment:** This is a false positive. The function does not execute its output. It is a pure decompression utility; the output is a string returned to the caller. No network I/O, no `Invoke-Expression`, no reflection-based execution occurs.
 
-**Recommended action for consumers:** Submit the file or release artifact as a false positive to your scanning vendor, referencing this note and the published source at `https://github.com/johnsarie27/SecurityTools`.
+**Recommended action for consumers:** Submit the file or release artifact as a false positive to your scanning vendor, referencing this note and the published source at `https://github.com/jjohns-dev/SecurityTools`.
 
 ---
 
