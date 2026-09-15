@@ -32,17 +32,17 @@ function Set-GitHubBranchProtection {
     .OUTPUTS
         System.Management.Automation.PSCustomObject.
     .EXAMPLE
-        PS C:\> Set-GitHubBranchProtection -Owner 'johnsarie27' -Repository 'PS.SSL' -WhatIf
+        PS C:\> Set-GitHubBranchProtection -Owner 'jjohns-dev' -Repository 'PS.SSL' -WhatIf
         Show what protection would be applied to the default branch of the
         PS.SSL repository without making changes.
     .EXAMPLE
-        PS C:\> 'PS.SSL', 'SecurityTools' | Set-GitHubBranchProtection -Owner 'johnsarie27'
+        PS C:\> 'PS.SSL', 'SecurityTools' | Set-GitHubBranchProtection -Owner 'jjohns-dev'
         Apply the standard protection policy to the default branch of two
         repositories via pipeline. Repos whose existing rule already matches
         return 'AlreadyProtected'; repos with a conflicting rule return
         'Conflict' and are skipped.
     .EXAMPLE
-        PS C:\> Set-GitHubBranchProtection -Owner 'johnsarie27' -Repository 'PS.SSL' -Force
+        PS C:\> Set-GitHubBranchProtection -Owner 'jjohns-dev' -Repository 'PS.SSL' -Force
         Overwrite any existing (conflicting) rule on the default branch of
         PS.SSL with the standard policy.
     .NOTES
