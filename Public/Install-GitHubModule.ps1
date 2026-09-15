@@ -15,7 +15,7 @@ function Install-GitHubModule {
     .OUTPUTS
         None.
     .EXAMPLE
-        PS C:\> Install-GitHubModule -Account 'johnsarie27' -Repository 'SecurityTools'
+        PS C:\> Install-GitHubModule -Account 'jjohns-dev' -Repository 'SecurityTools'
         Installs SecurityTools module in the CurrentUser scope
     .NOTES
         Status: Stable
