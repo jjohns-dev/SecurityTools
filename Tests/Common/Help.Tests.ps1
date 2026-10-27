@@ -22,6 +22,12 @@ Describe '<_> help' -ForEach $Cmdlets {
         $Command = Get-Command -Name $_ # Get current from -ForEach $Cmdlets in discovery-phase
         $CommandParameters = $Command.ParameterSets.Parameters | Sort-Object -Property Name -Unique | Where-Object { $_.Name -notin $Common } | Select-Object Name
         $CommandParameterNames = $CommandParameters.Name
+
+        # -ForEach is bound at discovery, so help parameter names must resolve here, not only in BeforeAll.
+        # Source them from the AST, not Get-Help: Get-Help silently drops a .PARAMETER block that names no real parameter,
+        # which makes the matching-help assertion a tautology.
+        $HelpContent = if ($Command.ScriptBlock) { $Command.ScriptBlock.Ast.GetHelpContent() }
+        $HelpParameterNames = @($HelpContent.Parameters.Keys | Where-Object { $_ -notin $Common })
     }
     BeforeAll {
         $Common = 'ProgressAction', 'Debug', 'ErrorAction', 'ErrorVariable', 'InformationAction', 'InformationVariable', 'OutBuffer', 'OutVariable', 'PipelineVariable', 'Verbose', 'WarningAction', 'WarningVariable', 'Confirm', 'Whatif'
@@ -32,7 +38,25 @@ Describe '<_> help' -ForEach $Cmdlets {
 
         $Help = Get-Help $Command -ErrorAction SilentlyContinue
         $HelpParameters = $Help.Parameters.Parameter | Where-Object { $_.Name -notin $Common } | Sort-Object -Property Name -Unique
-        $HelpParameterNames = $HelpParameters.Name
+
+        # Dynamic parameters are invisible to static Get-Command metadata, so a
+        # .PARAMETER block documenting one (e.g. Get-KEVList's -OutputDirectory,
+        # gated on -Format) would otherwise look like help for a parameter that
+        # does not exist. Re-query with a representative value for each
+        # ValidateSet-constrained static parameter to trigger the DynamicParam
+        # block, then collect the parameter names it adds.
+        $DynamicParameterNames = @()
+        if ($Command.ScriptBlock -and $Command.ScriptBlock.Ast.Body.DynamicParamBlock) {
+            $Triggers = foreach ($Parameter in $Command.Parameters.Values) {
+                if ($Parameter.Name -in $Common) { continue }
+                $ValidateSet = $Parameter.Attributes | Where-Object { $_ -is [System.Management.Automation.ValidateSetAttribute] } | Select-Object -First 1
+                if ($ValidateSet) { $ValidateSet.ValidValues[0] }
+            }
+            try {
+                $Resolved = Get-Command -Name $Command.Name -ArgumentList $Triggers -ErrorAction Stop
+                $DynamicParameterNames = @($Resolved.Parameters.Keys | Where-Object { $_ -notin $CommandParameterNames -and $_ -notin $Common })
+            } catch { $DynamicParameterNames = @() }
+        }
     }
 
     # If help is not found, synopsis in auto-generated help is the syntax diagram
@@ -76,6 +100,6 @@ Describe '<_> help' -ForEach $Cmdlets {
     # Shouldn't find extra parameters in help
     It 'Should have matching help for parameter: <_>' -ForEach $HelpParameterNames -AllowNullOrEmptyForEach {
         $HelpParameterName = $_
-        $HelpParameterName -in $CommandParameterNames | Should -Be $true
+        $HelpParameterName -in (@($CommandParameterNames) + @($DynamicParameterNames)) | Should -Be $true
     }
 }
