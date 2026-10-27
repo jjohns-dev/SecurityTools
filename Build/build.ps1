@@ -25,33 +25,15 @@ $PSVersionTable
 
 # Load dependencies
 if ($PSBoundParameters.Keys -contains 'ResolveDependency') {
-    # Bootstrap environment
-    Get-PackageProvider -Name 'NuGet' -ForceBootstrap | Out-Null
-
-    # Install PSDepend module if it is not already installed
-    if (-not (Get-Module -Name 'PSDepend' -ListAvailable)) {
-        Write-Output -InputObject "`nPSDepend is not yet installed...installing PSDepend now..."
-        Install-Module -Name 'PSDepend' -Scope 'CurrentUser' -Force
-    }
-    else {
-        Write-Output -InputObject "`nPSDepend already installed...skipping."
-    }
-
-    # Install build dependencies
+    # Install build dependencies from depend.psd1 via PSResourceGet.
+    # TrustRepository: PSGallery registers as Trusted=False under PSResourceGet,
+    # so the install would otherwise prompt and fail non-interactively.
     $psdependencyConfigPath = Join-Path -Path $PSScriptRoot -ChildPath 'depend.psd1'
     Write-Output -InputObject "Checking / resolving module dependencies from [$psdependencyConfigPath]..."
-    Import-Module -Name 'PSDepend'
-    $invokePSDependParams = @{
-        Path    = $psdependencyConfigPath
-        # Tags = 'Bootstrap'
-        Import  = $true
-        Confirm = $false
-        Install = $true
-        Force   = $true
-
-        # Verbose = $true
+    $data = Import-PowerShellDataFile -Path $psdependencyConfigPath
+    foreach ($name in ($data.Keys | Where-Object { $_ -ne 'PSDependOptions' })) {
+        Install-PSResource -Name $name -Version $data[$name] -Repository 'PSGallery' -TrustRepository -Scope 'CurrentUser' -ErrorAction 'Stop'
     }
-    Invoke-PSDepend @invokePSDependParams
 
     # Remove ResolveDependency PSBoundParameter ready for passthru to PSake
     $PSBoundParameters.Remove('ResolveDependency')
