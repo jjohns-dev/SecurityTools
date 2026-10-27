@@ -21,9 +21,12 @@ jobs:
         include:
           - os: ubuntu-latest
             pesterScope: CrossPlatform
+            minTests: 1104
           - os: windows-latest
             pesterScope: WindowsOnly
+            minTests: 20
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
     permissions:
       contents: read
       checks: write
@@ -40,19 +43,95 @@ jobs:
         run: .\Build\build.ps1 -TaskList 'Analyze'
 
       - shell: pwsh # pester
+        id: pester
         run: .\Build\build.ps1 -TaskList 'Test' -Properties @{ PesterScope = '${{ matrix.pesterScope }}' }
 
+      - name: Verify Pester results
+        shell: pwsh
+        # Gated on the Pester step having run, not on always(): when an earlier
+        # step fails there is no result file, and an unconditional check would
+        # bury that real failure under a misleading "no result file" error.
+        # A step that never started reports outcome 'skipped', not '' -- measured,
+        # not inferred. Do not rewrite this as a positive test; see AGENTS.md.
+        if: always() && steps.pester.outcome != 'skipped'
+        env:
+          MIN_TESTS: ${{ matrix.minTests }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          $files = @(Get-ChildItem -Path 'Artifacts' -Filter 'Test-*.xml' -Recurse -ErrorAction SilentlyContinue)
+          if ($files.Count -eq 0) {
+              throw 'No Pester result file was produced under Artifacts/.'
+          }
+
+          # An unset MIN_TESTS reads as 0, which disables the floor check below.
+          $minTests = [int]($env:MIN_TESTS -as [int])
+
+          $problems = @()
+
+          foreach ($f in $files) {
+              [xml]$doc = Get-Content -Path $f.FullName -Raw
+              $root = $doc.DocumentElement
+
+              # Counts are read from the root <testsuites>. The child <testsuite>
+              # reports errors="0" for the same run, so a check written against the
+              # child parses cleanly and never fires.
+              #
+              # LocalName, not Name: PowerShell's XML adapter surfaces attributes as
+              # properties, so $root.Name returns the name="Pester" attribute rather
+              # than the element name. Attributes are read with GetAttribute() for the
+              # same reason.
+              if ($root.LocalName -ne 'testsuites') {
+                  $problems += ('{0}: expected a JUnit <testsuites> root, found <{1}>. Pester must be configured with TestResult.OutputFormat = JUnitXml.' -f $f.Name, $root.LocalName)
+                  continue
+              }
+
+              $tests = [int]($root.GetAttribute('tests') -as [int])
+              $errors = [int]($root.GetAttribute('errors') -as [int])
+              $failures = [int]($root.GetAttribute('failures') -as [int])
+
+              Write-Host ('{0}: tests={1} errors={2} failures={3}' -f $f.Name, $tests, $errors, $failures)
+
+              # Discovery and container errors attach to the container rather than
+              # to a test, so a psake gate reading FailedCount leaves them invisible.
+              if ($errors -gt 0) {
+                  $problems += ('{0}: {1} container/discovery error(s); part of the suite was never collected.' -f $f.Name, $errors)
+              }
+
+              if ($tests -eq 0) {
+                  $problems += ('{0}: no tests were collected.' -f $f.Name)
+              }
+              # A suite can shrink without any discovery error: a glob that stops
+              # matching, a file moved out of Run.Path, a -ForEach source that shrinks.
+              elseif ($tests -lt $minTests) {
+                  $problems += ('{0}: {1} tests collected, below the min-tests floor of {2}; part of the suite is no longer being collected.' -f $f.Name, $tests, $minTests)
+              }
+
+              # $failures is reported above but not gated here: a genuine test
+              # failure already fails the Pester step via the repo's psake gate.
+          }
+
+          if ($problems.Count -gt 0) {
+              $problems | ForEach-Object { Write-Host ('::error::{0}' -f $_) }
+              throw ('Pester result verification failed with {0} problem(s).' -f $problems.Count)
+          }
+
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
         with:
           name: Pester Results (${{ matrix.os }})
           path: "Artifacts/**/Test-*.xml"
-          if-no-files-found: error
+          if-no-files-found: warn
 
       - name: Publish Pester results
         uses: dorny/test-reporter@d1b5dff021aa968b288b02285a8bf47471c5928a # v3.2.0
-        if: always()
+        # Only publish when a JUnit file actually exists. This step is display
+        # only: fail-on-* stay false because "Verify Pester results" above is the
+        # gate, and a missing file is already a hard failure there.
+        if: always() && hashFiles('Artifacts/**/Test-*.xml') != ''
         with:
           name: Pester Tests (${{ matrix.os }})
           path: Artifacts/**/Test-*.xml
           reporter: java-junit
           fail-on-error: false
+          fail-on-empty: false

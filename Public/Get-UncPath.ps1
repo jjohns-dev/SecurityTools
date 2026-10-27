@@ -8,7 +8,7 @@ function Get-UncPath {
     .PARAMETER Path
         Local or relative path to be changed into a UNC path. This should
         include the drive letter and full path to the target directory.
-    .PARAMETER HostName
+    .PARAMETER ComputerName
         Hostname or servername to bind to the UNC path. If not provided then
         localhost will be assumed.
     .PARAMETER Unix
