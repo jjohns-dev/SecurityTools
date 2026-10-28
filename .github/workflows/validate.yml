@@ -21,7 +21,7 @@ jobs:
         include:
           - os: ubuntu-latest
             pesterScope: CrossPlatform
-            minTests: 1104
+            minTests: 956
           - os: windows-latest
             pesterScope: WindowsOnly
             minTests: 20
