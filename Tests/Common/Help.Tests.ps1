@@ -28,6 +28,11 @@ Describe '<_> help' -ForEach $Cmdlets {
         # which makes the matching-help assertion a tautology. `$_ -and` drops the $null a help-less function yields.
         $HelpContent = if ($Command.ScriptBlock) { $Command.ScriptBlock.Ast.GetHelpContent() }
         $HelpParameterNames = @($HelpContent.Parameters.Keys | Where-Object { $_ -and $_ -notin $Common })
+
+        # Links come from Get-Help, not the AST: the AST includes related-topic names that are not URIs, while Get-Help
+        # exposes URI links and moves related-topic names to linkText. Filter on the URI because no .LINK still yields
+        # a navigationLink entry with an empty uri; without a URI, there should be no link-test case.
+        $HelpLinkUris = @((Get-Help $Command -ErrorAction SilentlyContinue).relatedLinks.navigationLink.uri | Where-Object { $_ })
     }
     BeforeAll {
         $Common = 'ProgressAction', 'Debug', 'ErrorAction', 'ErrorVariable', 'InformationAction', 'InformationVariable', 'OutBuffer', 'OutVariable', 'PipelineVariable', 'Verbose', 'WarningAction', 'WarningVariable', 'Confirm', 'Whatif'
@@ -55,7 +60,8 @@ Describe '<_> help' -ForEach $Cmdlets {
             try {
                 $Resolved = Get-Command -Name $Command.Name -ArgumentList $Triggers -ErrorAction Stop
                 $DynamicParameterNames = @($Resolved.Parameters.Keys | Where-Object { $_ -notin $CommandParameterNames -and $_ -notin $Common })
-            } catch { $DynamicParameterNames = @() }
+            }
+            catch { $DynamicParameterNames = @() }
         }
     }
 
@@ -76,14 +82,10 @@ Describe '<_> help' -ForEach $Cmdlets {
 
     # A .LINK, where present, must be a well-formed absolute http(s) URI; not requested, so these tests stay offline.
     # Both checks are needed: the pattern rejects 'ftp://...', IsWellFormedUriString rejects 'https://example.com/a^b'.
-    It 'Should have a well-formed link' {
-        if ($Help.relatedLinks.navigationLink.uri) {
-            foreach ($Uri in @($Help.relatedLinks.navigationLink.uri | Where-Object { $_ })) {
-                $Uri | Should -Match '^https?://'
-                [System.Uri]::IsWellFormedUriString($Uri, [System.UriKind]::Absolute) |
-                    Should -BeTrue -Because ('''{0}'' is not a well-formed absolute URI' -f $Uri)
-            }
-        }
+    It 'Should have a well-formed link: <_>' -ForEach $HelpLinkUris -AllowNullOrEmptyForEach {
+        $_ | Should -Match '^https?://'
+        [System.Uri]::IsWellFormedUriString($_, [System.UriKind]::Absolute) |
+        Should -BeTrue -Because ('''{0}'' is not a well-formed absolute URI' -f $_)
     }
 
     # Should be a description for every parameter
