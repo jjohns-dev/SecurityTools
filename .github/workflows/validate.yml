@@ -21,7 +21,7 @@ jobs:
         include:
           - os: ubuntu-latest
             pesterScope: CrossPlatform
-            minTests: 956
+            minTests: 987 # 997 collected - min(floor(997 * 0.05), 10) = 997 - 10
           - os: windows-latest
             pesterScope: WindowsOnly
             minTests: 20
