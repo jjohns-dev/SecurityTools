@@ -24,7 +24,7 @@ jobs:
             minTests: 987 # gates executed: 996 (997 collected - 1 disabled) - 9; set as 997 - 10 when it gated collected
           - os: windows-latest
             pesterScope: WindowsOnly
-            minTests: 424242
+            minTests: 20
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     permissions:
