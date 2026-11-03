@@ -58,7 +58,7 @@ Merging publishes nothing. `release.yml` is gated on a `v<x.y.z>` tag push on `m
 The ruleset covers `main` only:
 
 - PR required, all review threads must resolve before merge (code-scanning alerts post as PR review comments — they must resolve, not just the alert closing server-side). Code owner review is on, but 0 approvals are required and `@johnsarie27` is sole code owner, so PRs it authors merge unreviewed (#163: `CLEAN`, empty `reviewDecision`).
-- Required status checks: `validate (ubuntu-latest)`, `validate (windows-latest)`.
+- Required status checks: `validate (ubuntu-latest)`, `validate (windows-latest)`. Strict: a branch behind `main` cannot merge even with green checks.
 - Commits must be signed. Squash merge only, so branch commits land on `main` as one new SHA (hence #164). No force-push, no deletion.
 
 Feature branches are unprotected.
