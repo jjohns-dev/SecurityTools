@@ -21,7 +21,7 @@ jobs:
         include:
           - os: ubuntu-latest
             pesterScope: CrossPlatform
-            minTests: 987 # gates executed: 996 (997 collected - 1 disabled) - 9; set as 997 - 10 when it gated collected
+            minTests: 997 # gates executed: 996 (997 collected - 1 disabled) - 9; set as 997 - 10 when it gated collected
           - os: windows-latest
             pesterScope: WindowsOnly
             minTests: 20
