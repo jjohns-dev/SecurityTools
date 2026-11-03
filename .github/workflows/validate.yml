@@ -21,7 +21,7 @@ jobs:
         include:
           - os: ubuntu-latest
             pesterScope: CrossPlatform
-            minTests: 987 # 997 collected - min(floor(997 * 0.05), 10) = 997 - 10
+            minTests: 987 # gates executed: 996 (997 collected - 1 disabled) - 9; set as 997 - 10 when it gated collected
           - os: windows-latest
             pesterScope: WindowsOnly
             minTests: 20
@@ -90,7 +90,14 @@ jobs:
               $errors = [int]($root.GetAttribute('errors') -as [int])
               $failures = [int]($root.GetAttribute('failures') -as [int])
 
-              Write-Host ('{0}: tests={1} errors={2} failures={3}' -f $f.Name, $tests, $errors, $failures)
+              # Pester's JUnitXml routes skipped and tag-excluded tests to 'disabled'
+              # and still counts them in 'tests', so a mass-skip regression leaves
+              # 'tests' untouched. The floor measures what actually ran. An absent
+              # attribute reads as 0, so a file without it is unaffected.
+              $disabled = [int]($root.GetAttribute('disabled') -as [int])
+              $executed = $tests - $disabled
+
+              Write-Host ('{0}: tests={1} disabled={2} executed={3} errors={4} failures={5}' -f $f.Name, $tests, $disabled, $executed, $errors, $failures)
 
               # Discovery and container errors attach to the container rather than
               # to a test, so a psake gate reading FailedCount leaves them invisible.
@@ -103,8 +110,10 @@ jobs:
               }
               # A suite can shrink without any discovery error: a glob that stops
               # matching, a file moved out of Run.Path, a -ForEach source that shrinks.
-              elseif ($tests -lt $minTests) {
-                  $problems += ('{0}: {1} tests collected, below the min-tests floor of {2}; part of the suite is no longer being collected.' -f $f.Name, $tests, $minTests)
+              # It can also stop running without shrinking at all, when tests become
+              # skipped or tag-excluded, which is why this gates executed not tests.
+              elseif ($executed -lt $minTests) {
+                  $problems += ('{0}: {1} tests executed ({2} collected, {3} disabled), below the min-tests floor of {4}; part of the suite is no longer running.' -f $f.Name, $executed, $tests, $disabled, $minTests)
               }
 
               # $failures is reported above but not gated here: a genuine test
