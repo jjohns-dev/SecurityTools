@@ -26,6 +26,8 @@ Add `-ResolveDependency` on a clean checkout. `Analyze` and `Test` both generate
 
 Scanning with `Invoke-ScriptAnalyzer -Path . -Recurse` while `Staging/` exists double-counts every finding in `Public/`, because `Staging/` holds a copy. Clean up first, or read the counts with that in mind.
 
+`.git-blame-ignore-revs` skips the LF renormalization (#163) in blame. GitHub's web UI applies it automatically; local git ignores it until you run `git config blame.ignoreRevsFile .git-blame-ignore-revs` once per clone.
+
 ## Tests
 
 Pester 6.2.0+ (upgraded in #145 — see that PR and #138 for the full story of why).
