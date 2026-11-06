@@ -14,10 +14,13 @@ concurrency:
 
 jobs:
   validate:
-    name: validate (${{ matrix.label || matrix.os }})
+    name: validate (${{ matrix.os }})
     strategy:
       fail-fast: false
       matrix:
+        # Cross-platform *.tests.ps1 run on Linux only - deliberate, see #166. To also verify
+        # them on Windows, drop pesterScope from the windows leg (psake default All) and re-derive
+        # its minTests from the measured executed count.
         include:
           - os: ubuntu-latest
             pesterScope: CrossPlatform
@@ -25,10 +28,6 @@ jobs:
           - os: windows-latest
             pesterScope: WindowsOnly
             minTests: 20
-          - os: windows-latest
-            label: windows-latest, cross-platform
-            pesterScope: CrossPlatform
-            minTests: 982 # 992 executed (997 collected - 5 disabled) - min(floor(992 * 0.05), 10) = 992 - 10
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     permissions:
@@ -132,7 +131,7 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
-          name: Pester Results (${{ matrix.label || matrix.os }})
+          name: Pester Results (${{ matrix.os }})
           path: "Artifacts/**/Test-*.xml"
           if-no-files-found: warn
 
@@ -143,7 +142,7 @@ jobs:
         # gate, and a missing file is already a hard failure there.
         if: always() && hashFiles('Artifacts/**/Test-*.xml') != ''
         with:
-          name: Pester Tests (${{ matrix.label || matrix.os }})
+          name: Pester Tests (${{ matrix.os }})
           path: Artifacts/**/Test-*.xml
           reporter: java-junit
           fail-on-error: false
