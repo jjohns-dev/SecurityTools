@@ -26,9 +26,9 @@ jobs:
             pesterScope: WindowsOnly
             minTests: 20
           - os: windows-latest
-            label: windows-latest / cross-platform
+            label: windows-latest, cross-platform
             pesterScope: CrossPlatform
-            minTests: 0 # TRIAGE ONLY - floor disabled until #166 measures it
+            minTests: 982 # 992 executed (997 collected - 5 disabled) - min(floor(992 * 0.05), 10) = 992 - 10
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     permissions:
