@@ -1,6 +1,6 @@
 # SecurityTools
 
-[![validate](https://github.com/jjohns-dev/SecurityTools/actions/workflows/validate.yml/badge.svg?branch=main)](https://github.com/jjohns-dev/SecurityTools/actions/workflows/validate.yml)
+[![ci](https://github.com/jjohns-dev/SecurityTools/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/jjohns-dev/SecurityTools/actions/workflows/ci.yml)
 [![release](https://github.com/jjohns-dev/SecurityTools/actions/workflows/release.yml/badge.svg)](https://github.com/jjohns-dev/SecurityTools/actions/workflows/release.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PowerShell](https://img.shields.io/badge/PowerShell-7.0%2B-blue?logo=powershell&logoColor=white)](https://github.com/PowerShell/PowerShell)
