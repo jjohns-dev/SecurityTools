@@ -1,5 +1,5 @@
 # Taken with love from https://github.com/PowerShell/DscResource.Tests/blob/master/MetaFixers.psm1
-# This module helps fix problems, found by Meta.Tests.ps1
+# This module helps fix problems, found by meta.tests.ps1
 $ErrorActionPreference = 'stop'
 Set-StrictMode -Version 'latest'
 
