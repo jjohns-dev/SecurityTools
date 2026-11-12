@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   validate:
-    uses: jjohns-dev/pwsh-module-ci/.github/workflows/ci.yml@a3e5f5cea513381634f211ac3b9208cbe1245fff # C5 test
+    uses: jjohns-dev/pwsh-module-ci/.github/workflows/ci.yml@v2
     with:
       # Cross-platform *.tests.ps1 run on Linux only - deliberate, see #166. To also verify
       # them on Windows, drop pesterScope from the windows leg (harness default All) and re-derive
