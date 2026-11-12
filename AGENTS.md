@@ -10,7 +10,7 @@ PowerShell module of security- and sysadmin-oriented utility functions. Read [CO
 | `Private/` | A mix: `Invoke-DiskCleanup.ps1` (a private helper, dot-sourced but not exported), `.types.ps1xml`/`.format.ps1xml` extensions, and data files (`EventTable.json`, `InformationModel.json`, `windows_signatures_850.csv`) loaded by `SecurityTools.psm1` into read-only module variables. |
 | `Tests/Unit/` | One file per public function, `Verb-Noun.tests.ps1`, or `Verb-Noun.tests.windows.ps1` for Windows-only functions. |
 | `Tests/Common/` | Help, manifest, and meta tests that run against **every** exported function automatically. |
-| `Build/` | psake build (`build.psake.ps1`), entry point (`build.ps1`), analyzer settings, `depend.psd1`. |
+| `Build/` | Only `build.ps1`, the shim that runs the shared harness from [jjohns-dev/pwsh-module-ci](https://github.com/jjohns-dev/pwsh-module-ci) at the version `.github/workflows/ci.yml` pins. Build tools are pinned in that repo's `Build/depend.psd1`; runtime modules come from `RequiredModules` in `SecurityTools.psd1`. See its [consumer guide](https://github.com/jjohns-dev/pwsh-module-ci/blob/main/docs/consumer-guide.md). |
 
 Adding a public function means: the `.ps1` in `Public/`, a matching `Tests/Unit/` file, and a `FunctionsToExport` entry in `SecurityTools.psd1`.
 
@@ -32,7 +32,7 @@ Scanning with `Invoke-ScriptAnalyzer -Path . -Recurse` while `Staging/` exists d
 
 Pester 6.2.0+ (upgraded in #145 — see that PR and #138 for the full story of why).
 
-- **`-ForEach` arrays must be populated at discovery time, not run time.** Pester 6 defaults `Run.FailOnNullOrEmptyForEach` to `$true`, and `BeforeAll` runs *after* discovery already needs the array — build `-ForEach` data in `BeforeDiscovery` instead. Getting this wrong doesn't fail a test: it silently drops the whole container's tests with `FailedCount` still `0`, so a green build can mean "collected 10 of 1066 tests." This bit two independent files in this repo (`Tests/Common/Help.Tests.ps1`, `Tests/Unit/Get-StringHash.tests.ps1`) before #145. The build gate is `$TestResults.Result -ne 'Passed'` specifically because `FailedCount` cannot be trusted alone — check `Result`, never just `FailedCount` or a container's own `.Passed`.
+- **`-ForEach` arrays must be populated at discovery time, not run time.** Pester 6 defaults `Run.FailOnNullOrEmptyForEach` to `$true`, and `BeforeAll` runs *after* discovery already needs the array — build `-ForEach` data in `BeforeDiscovery` instead. Getting this wrong doesn't fail a test: it silently drops the whole container's tests with `FailedCount` still `0`, so a green build can mean "collected 10 of 1066 tests." This bit two independent files in this repo (`Tests/Common/help.tests.ps1`, then named `Help.Tests.ps1`, and `Tests/Unit/Get-StringHash.tests.ps1`) before #145. The build gate was `$TestResults.Result -ne 'Passed'` specifically because `FailedCount` cannot be trusted alone; that gate now lives in the shared harness's `Test` task and is still true there — check `Result`, never just `FailedCount` or a container's own `.Passed`.
 - **PowerShell's automatic variables silently shadow same-named locals.** A test fixture hashtable key (or parameter) named `Input`, `Args`, or similar collides with the automatic `$input`/`$args` and the real value never binds — no error, just a value that quietly isn't what you passed. Caught in `Get-StringHash.tests.ps1`, where `-String $Input` had silently never hashed the intended string. If a test's assertions make no sense for what you think you passed, suspect this before suspecting the function under test.
 - Import via the BuildHelpers env vars the `Init` task sets: `$env:BHProjectName`, `$env:BHPSModuleManifest`. Do not hard-code the module name.
 - Mock anything the function calls with `-ModuleName $env:BHProjectName`, or the real cmdlet runs inside the module.
@@ -43,9 +43,9 @@ Pester 6.2.0+ (upgraded in #145 — see that PR and #138 for the full story of w
 Two different scopes, and confusing them wastes time:
 
 - `Build/build.ps1 -TaskList Analyze` (and CI's `validate` job) analyzes **`Staging/` only**, so no test or build file is ever covered.
-- `.github/workflows/pssa-sarif.yml` scans the **whole repo** and feeds the Security tab. It honors `Build/PSScriptAnalyzerSettings.psd1` and `SuppressMessageAttribute`.
+- `.github/workflows/pssa-sarif.yml` scans the **whole repo** and feeds the Security tab. It honors the harness's shared analyzer settings plus any `PSScriptAnalyzerExcludeRules` in `Build/harness.psd1`, along with `SuppressMessageAttribute`.
 
-Policy: suppress **in place** with `SuppressMessageAttribute` plus a real `Justification`, naming the specific parameter as the attribute's second argument when the rule targets one (e.g. `PSReviewUnusedParameter`), so a new violation elsewhere still fires. `ExcludeRules` in the settings file is reserved for a rule that fires on a uniform, settled API decision across the whole module — currently just `PSAvoidGlobalVars`.
+Policy: suppress **in place** with `SuppressMessageAttribute` plus a real `Justification`, naming the specific parameter as the attribute's second argument when the rule targets one (e.g. `PSReviewUnusedParameter`), so a new violation elsewhere still fires. A module-wide exclusion is reserved for a rule that fires on a uniform, settled API decision across the whole module, and now goes in `Build/harness.psd1` (`PSScriptAnalyzerExcludeRules`); this repo has none. The old `Build/PSScriptAnalyzerSettings.psd1` excluded only `PSAvoidGlobalVars`, and that exclusion is gone: the harness's shared settings exclude nothing.
 
 ## Versioning and release
 
