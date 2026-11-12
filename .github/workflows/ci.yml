@@ -17,7 +17,7 @@ jobs:
     uses: jjohns-dev/pwsh-module-ci/.github/workflows/ci.yml@a3e5f5cea513381634f211ac3b9208cbe1245fff # C5 test
     with:
       # Cross-platform *.tests.ps1 run on Linux only - deliberate, see #166. To also verify
-      # them on Windows, drop pesterScope from the windows leg (psake default All) and re-derive
+      # them on Windows, drop pesterScope from the windows leg (harness default All) and re-derive
       # its minTests from the measured executed count.
       # ubuntu minTests: 996 executed (997 collected - 1 disabled) - min(floor(996 * 0.05), 10) = 996 - 10
       os-matrix: >-
