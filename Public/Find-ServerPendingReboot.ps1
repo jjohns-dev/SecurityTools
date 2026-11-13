@@ -1,4 +1,4 @@
-﻿function Find-ServerPendingReboot {
+function Find-ServerPendingReboot {
     <#
     .SYNOPSIS
         Check if a server is pending reboot
