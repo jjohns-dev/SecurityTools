@@ -19,9 +19,10 @@ jobs:
       # Cross-platform *.tests.ps1 run on Linux only - deliberate, see #166. To also verify
       # them on Windows, drop pesterScope from the windows leg (harness default All) and re-derive
       # its minTests from the measured executed count.
-      # ubuntu minTests: 996 executed (997 collected - 1 disabled) - min(floor(996 * 0.05), 10) = 996 - 10
+      # ubuntu minTests: 1066 executed (1067 collected - 1 disabled) - min(floor(1066 * 0.05), 10) = 1066 - 10
+      # windows minTests: 21 executed (21 collected - 0 disabled) - min(floor(21 * 0.05), 10) = 21 - 1
       os-matrix: >-
-        [{"os":"ubuntu-latest","pesterScope":"CrossPlatform","minTests":986},
+        [{"os":"ubuntu-latest","pesterScope":"CrossPlatform","minTests":1056},
          {"os":"windows-latest","pesterScope":"WindowsOnly","minTests":20}]
     permissions:
       contents: read
