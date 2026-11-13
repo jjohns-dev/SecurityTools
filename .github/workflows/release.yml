@@ -18,7 +18,7 @@ on:
 jobs:
   release:
     if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'pull_request'
-    uses: jjohns-dev/pwsh-module-ci/.github/workflows/release.yml@v2
+    uses: jjohns-dev/pwsh-module-ci/.github/workflows/release.yml@v2.1.0
     with:
       dry-run: ${{ github.event_name == 'pull_request' }}
     permissions:

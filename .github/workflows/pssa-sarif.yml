@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   analyze:
-    uses: jjohns-dev/pwsh-module-ci/.github/workflows/pssa-sarif.yml@v2
+    uses: jjohns-dev/pwsh-module-ci/.github/workflows/pssa-sarif.yml@v2.1.0
     permissions:
       contents: read
       security-events: write
