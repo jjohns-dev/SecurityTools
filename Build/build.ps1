@@ -1,6 +1,6 @@
 # ==============================================================================
 # Filename: build.ps1
-# Version:  2.0.0 | Updated: 2026-11-09
+# Version:  2.0.2 | Updated: 2026-11-12
 # Author:   johnsarie27
 # ==============================================================================
 <#
@@ -48,7 +48,12 @@ if ($LASTEXITCODE -ne 0) {
     Write-Error -Message $message -ErrorAction 'Stop'
 }
 
-$checkoutOutput = git -C $cache checkout --quiet --detach $ref 2>&1
+$checkoutTarget = $ref
+# A BRANCH RESOLVES TO WHAT THE FETCH BROUGHT IN; THE CACHE'S LOCAL BRANCH NEVER ADVANCES (#73)
+git -C $cache show-ref --verify --quiet ('refs/remotes/origin/{0}' -f $ref)
+if ($LASTEXITCODE -eq 0) { $checkoutTarget = 'origin/{0}' -f $ref }
+
+$checkoutOutput = git -C $cache checkout --quiet --detach $checkoutTarget 2>&1
 if ($LASTEXITCODE -ne 0) {
     $message = 'Could not check out pwsh-module-ci at [{0}] in [{1}]. Nothing was run. git said: {2}' -f $ref, $cache, ($checkoutOutput -join ' ')
     Write-Error -Message $message -ErrorAction 'Stop'

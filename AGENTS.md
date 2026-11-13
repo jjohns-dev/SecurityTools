@@ -9,7 +9,7 @@ PowerShell module of security- and sysadmin-oriented utility functions. Read [CO
 | `Public/` | One exported function per file, named `Verb-Noun.ps1`. This is the module's API surface. |
 | `Private/` | A mix: `Invoke-DiskCleanup.ps1` (a private helper, dot-sourced but not exported), `.types.ps1xml`/`.format.ps1xml` extensions, and data files (`EventTable.json`, `InformationModel.json`, `windows_signatures_850.csv`) loaded by `SecurityTools.psm1` into read-only module variables. |
 | `Tests/Unit/` | One file per public function, `Verb-Noun.tests.ps1`, or `Verb-Noun.tests.windows.ps1` for Windows-only functions. |
-| `Tests/Common/` | Help, manifest, and meta tests that run against **every** exported function automatically. |
+| `Tests/Common/` | Help tests that run against **every** exported function automatically. Manifest, encoding, and path-literal checks come from the [shared harness suites](https://github.com/jjohns-dev/pwsh-module-ci/blob/main/docs/consumer-guide.md#shared-tests). |
 | `Build/` | Only `build.ps1`, the shim that runs the shared harness from [jjohns-dev/pwsh-module-ci](https://github.com/jjohns-dev/pwsh-module-ci) at the version `.github/workflows/ci.yml` pins. Build tools are pinned in that repo's `Build/depend.psd1`; runtime modules come from `RequiredModules` in `SecurityTools.psd1`. See its [consumer guide](https://github.com/jjohns-dev/pwsh-module-ci/blob/main/docs/consumer-guide.md). |
 
 Adding a public function means: the `.ps1` in `Public/`, a matching `Tests/Unit/` file, and a `FunctionsToExport` entry in `SecurityTools.psd1`.

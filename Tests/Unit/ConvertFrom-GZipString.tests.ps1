@@ -1,4 +1,4 @@
-﻿[Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute(
     'PSUseShouldProcessForStateChangingFunctions',
     '',
     Justification = 'New-GZipFixture is a test fixture factory that builds an in-memory Base64 string and changes no state; the rule fires on the verb alone.'
