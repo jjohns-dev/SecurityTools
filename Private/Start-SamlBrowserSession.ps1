@@ -21,7 +21,7 @@ function Start-SamlBrowserSession {
     Process {
         $Session.Cancellation = [System.Threading.CancellationTokenSource]::new($Timeout)
         $Session.ProfilePath = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath (
-            'securitytools-saml-{0}' -f [System.Guid]::NewGuid()
+            'securitytools-saml-{0}' -f (New-Guid)
         )
         $Session.LogPath = '{0}.log' -f $Session.ProfilePath
         if (-not $Session.WebSocket) {

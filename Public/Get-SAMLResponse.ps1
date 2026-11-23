@@ -51,7 +51,7 @@ function Get-SAMLResponse {
 
         [Parameter(HelpMessage = 'Time limit for browser startup and interactive sign-in')]
         [ValidateScript({ $_ -gt [System.TimeSpan]::Zero -and $_.TotalMilliseconds -le [System.UInt32]::MaxValue - 1 })]
-        [System.TimeSpan] $Timeout = [System.TimeSpan]::FromMinutes(5),
+        [System.TimeSpan] $Timeout = (New-TimeSpan -Minutes 5),
 
         [Parameter(HelpMessage = 'Override the installed Microsoft Edge executable path')]
         [ValidateNotNullOrEmpty()]

@@ -155,7 +155,7 @@ Describe -Name 'Get-SAMLResponse' -Fixture {
     }
     It -Name 'reports timeout distinctly and still disposes the WebSocket' -Test {
         $fixture.Socket.CancelOnReceive = $fixture.Cancellation
-        { Get-SAMLResponse @captureParams -Timeout ([System.TimeSpan]::FromSeconds(7)) } |
+        { Get-SAMLResponse @captureParams -Timeout (New-TimeSpan -Seconds 7) } |
             Should -Throw -ExpectedMessage 'Timed out waiting for the SAMLResponse (limit 00:00:07)'
         $fixture.Socket.DisposeCount | Should -Be 1
         Test-Path -LiteralPath $fixture.ProfilePath | Should -BeFalse
@@ -261,7 +261,7 @@ Describe -Name 'SAML browser discovery and lifecycle' -Fixture {
         }
     }
     It -Name 'stops polling when no blank page target appears before the deadline' -Test {
-        $clock = @{ Now = [System.DateTime]::UtcNow }
+        $clock = @{ Now = (Get-Date) }
         $started = $clock.Now
         Mock -CommandName Get-Date -ModuleName $env:BHProjectName -MockWith {
             $clock.Now
@@ -280,7 +280,7 @@ Describe -Name 'SAML browser discovery and lifecycle' -Fixture {
         InModuleScope -ModuleName $env:BHProjectName -ScriptBlock {
             $session = @{}
             try {
-                { Start-SamlBrowserSession -Session $session -BrowserPath 'mock-edge' -Timeout ([System.TimeSpan]::FromMinutes(5)) } |
+                { Start-SamlBrowserSession -Session $session -BrowserPath 'mock-edge' -Timeout (New-TimeSpan -Minutes 5) } |
                     Should -Throw -ExpectedMessage '*did not expose a DevTools page target*'
             }
             finally {
@@ -289,7 +289,7 @@ Describe -Name 'SAML browser discovery and lifecycle' -Fixture {
             }
         }
         Should -Invoke -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -Times 1
-        ($clock.Now - $started) | Should -Be ([System.TimeSpan]::FromSeconds(20))
+        ($clock.Now - $started) | Should -Be (New-TimeSpan -Seconds 20)
         Should -Invoke -CommandName Start-Process -ModuleName $env:BHProjectName -Times 1 -Exactly -ParameterFilter {
             $ArgumentList -contains '--remote-debugging-port=0' -and
             $ArgumentList -contains 'about:blank' -and
@@ -310,7 +310,7 @@ Describe -Name 'SAML browser discovery and lifecycle' -Fixture {
         InModuleScope -ModuleName $env:BHProjectName -ScriptBlock {
             $session = @{ WebSocket = [SamlTestWebSocket]::new() }
             try {
-                @(Start-SamlBrowserSession -Session $session -BrowserPath 'mock-edge' -Timeout ([System.TimeSpan]::FromMinutes(5))) |
+                @(Start-SamlBrowserSession -Session $session -BrowserPath 'mock-edge' -Timeout (New-TimeSpan -Minutes 5)) |
                     Should -HaveCount 0
                 $session.WebSocket.ConnectedUri.AbsoluteUri | Should -Be 'ws://127.0.0.1:9222/right'
             }
