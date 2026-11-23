@@ -15,6 +15,7 @@ A PowerShell module for information security, digital forensics, and reporting. 
 - PowerShell 7.0 or later (tested on Windows and Linux)
 - [`ImportExcel`](https://www.powershellgallery.com/packages/ImportExcel) (required — used by the `Export-*` reporting functions)
 - Optional, Windows-only: `SqlServer`, `ActiveDirectory`, `GroupPolicy` (loaded on demand by specific functions)
+- Optional: locally installed Microsoft Edge (required only by `Get-SAMLResponse`)
 
 ## Installation
 
