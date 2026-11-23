@@ -7,6 +7,7 @@ function Get-SAMLResponse {
         posted to the matching assertion URL. Complete sign-in and MFA in the visible browser window.
         Uses built-in .NET WebSockets and the Chrome DevTools Protocol; no browser downloads or extra dependencies.
         The POST is observed, not blocked. The returned assertion is sensitive and should not be logged.
+        Cleanup failures are reported as warnings without discarding a captured assertion.
     .PARAMETER LoginUri
         Absolute identity-provider sign-in URI to open.
     .PARAMETER AssertionUri
@@ -34,8 +35,9 @@ function Get-SAMLResponse {
         other users' processes, which can connect during capture. Managed Edge may silently sign the temporary
         profile in to a work account; a connected local process could act with that session.
         Playwright avoids this exposure with --remote-debugging-pipe. This function accepts a short-lived
-        localhost port to remain dependency-free. The browser is terminated and its temporary profile deleted
-        afterwards. Chromium 136+ requires a non-default profile for remote debugging.
+        localhost port to remain dependency-free. Cleanup attempts to terminate the browser and delete its
+        temporary profile. Check cleanup warnings: browser or profile resources may remain.
+        Chromium 136+ requires a non-default profile for remote debugging.
         https://developer.chrome.com/blog/remote-debugging-port
     #>
     [CmdletBinding()]
@@ -69,7 +71,6 @@ function Get-SAMLResponse {
             LogPath      = $null
             NextId       = 0
         }
-        $captureFailed = $false
         try {
             $edgePath = Get-SamlBrowserPath -BrowserPath $BrowserPath
             Start-SamlBrowserSession -Session $session -BrowserPath $edgePath -Timeout $Timeout
@@ -125,7 +126,6 @@ function Get-SAMLResponse {
             }
         }
         catch {
-            $captureFailed = $true
             if ($session.Cancellation -and $session.Cancellation.IsCancellationRequested) {
                 Write-Error -Message ('Timed out waiting for the SAMLResponse (limit {0})' -f $Timeout) -ErrorAction Stop
             }
@@ -139,12 +139,7 @@ function Get-SAMLResponse {
                 Stop-SamlBrowserSession -Session $session
             }
             catch {
-                if ($captureFailed) {
-                    Write-Warning -Message ('SAML capture cleanup failed: {0}' -f $PSItem.Exception.Message)
-                }
-                else {
-                    Write-Error -ErrorRecord $PSItem -ErrorAction Stop
-                }
+                Write-Warning -Message ('SAML capture cleanup failed: {0}' -f $PSItem.Exception.Message)
             }
             finally {
                 Remove-Variable -Name 'postData', 'encoded', 'field', 'message', 'reply', 'request' -Force -ErrorAction Ignore

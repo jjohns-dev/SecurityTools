@@ -47,7 +47,7 @@ function Start-SamlBrowserSession {
         while (-not $target -and (Get-Date) -lt $deadline) {
             $Session.Cancellation.Token.ThrowIfCancellationRequested()
             if ($Session.Process.HasExited) {
-                Write-Error -Exception ([System.Net.WebSockets.WebSocketException]::new()) -ErrorAction Stop
+                Write-Error -Message 'Edge exited during startup before exposing a DevTools page target.' -ErrorAction Stop
             }
             if (Test-Path -LiteralPath $portFile) {
                 $portText = Get-Content -LiteralPath $portFile -TotalCount 1 -ErrorAction Stop

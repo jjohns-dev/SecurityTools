@@ -116,6 +116,28 @@ Describe -Name 'Get-SAMLResponse' -Fixture {
         $sent.method | Should -Be @('Network.enable', 'Page.navigate')
         $sent[1].params.url | Should -BeExactly $captureParams.LoginUri
     }
+    It -Name 'returns the captured assertion and warns when file cleanup fails' -Test {
+        $fixture.Socket.Messages.Enqueue('{"method":"Network.requestWillBeSent","params":{"request":{"method":"POST","url":"https://pam.example.com/acs","postData":"SAMLResponse=captured%2B%2F%3D"}}}')
+        Mock -CommandName Remove-Item -ModuleName $env:BHProjectName -MockWith {
+            Write-Error -Message 'Synthetic file cleanup failure.' -ErrorAction Stop
+        }
+        try {
+            $result = @(Get-SAMLResponse @captureParams -WarningVariable cleanupWarnings -WarningAction SilentlyContinue)
+            $result | Should -HaveCount 1
+            $result[0] | Should -BeExactly 'captured+/='
+            ($cleanupWarnings.Message -join ' ') | Should -Match 'SAML capture cleanup failed'
+            $fixture.Socket.DisposeCount | Should -Be 1
+            Test-Path -LiteralPath $fixture.ProfilePath | Should -BeTrue
+            Test-Path -LiteralPath $fixture.LogPath | Should -BeTrue
+        }
+        finally {
+            foreach ($path in @($fixture.ProfilePath, $fixture.LogPath)) {
+                if (Test-Path -LiteralPath $path) {
+                    Remove-Item -LiteralPath $path -Recurse -Force
+                }
+            }
+        }
+    }
     It -Name 'retrieves an omitted body and waits for the matching reply id' -Test {
         $fixture.Socket.Messages.Enqueue('{"method":"Network.requestWillBeSent","params":{"requestId":"request-42","request":{"method":"POST","url":"https://pam.example.com/acs","hasPostData":true}}}')
         $fixture.Socket.Messages.Enqueue('{"id":99,"result":{"postData":"SAMLResponse=wrong"}}')
@@ -259,6 +281,21 @@ Describe -Name 'SAML browser discovery and lifecycle' -Fixture {
         InModuleScope -ModuleName $env:BHProjectName -ScriptBlock {
             { Get-SamlBrowserPath } | Should -Throw -ExpectedMessage '*Microsoft Edge not found*'
         }
+    }
+    It -Name 'reports an Edge exit before a page target as a startup error' -Test {
+        $fixture.Process.HasExited = $true
+        Mock -CommandName Get-SamlBrowserPath -ModuleName $env:BHProjectName -MockWith { 'mock-edge' }
+        Mock -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -MockWith {}
+        $captureParams = @{
+            LoginUri     = 'https://login.example.com/signin'
+            AssertionUri = 'https://pam.example.com/*'
+        }
+        { Get-SAMLResponse @captureParams } |
+            Should -Throw -ExpectedMessage 'Edge exited during startup before exposing a DevTools page target.'
+        Should -Invoke -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -Times 0 -Exactly
+        $fixture.Process.Killed | Should -BeFalse
+        $fixture.Process.Waited | Should -BeTrue
+        $fixture.Process.Disposed | Should -BeTrue
     }
     It -Name 'stops polling when no blank page target appears before the deadline' -Test {
         $clock = @{ Now = (Get-Date) }
