@@ -12,7 +12,7 @@
     # Major = significant changes, breaking changes or major new features
     # Minor = new functions or features
     # Build = bug fixes and minor updates
-    ModuleVersion        = '0.12.2'
+    ModuleVersion        = '0.13.0'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Core')
@@ -130,6 +130,7 @@
         'Get-PublicIP'
         'Get-QRCode'
         'Get-RSOP'
+        'Get-SAMLResponse'
         'Get-SavedHistory'
         'Get-Software'
         'Get-StringHash'
